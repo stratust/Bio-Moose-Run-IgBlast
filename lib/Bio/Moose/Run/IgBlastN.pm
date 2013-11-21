@@ -15,6 +15,15 @@ class Bio::Moose::Run::IgBlastN {
         documentation => 'Input Fasta file',
     );
 
+    has 'igdata' => (
+        is     => 'rw',
+        isa    => 'Str',
+        traits => ['CmdOpt'],
+        cmdopt_env => 'IGDATA',
+        required   => 1,
+        default    => '/work/bioinformatics/igblast'
+    );
+
     #Implementing all options from igblastn
     has 'germline_db_V' => (
         is            => 'rw',
@@ -76,10 +85,12 @@ class Bio::Moose::Run::IgBlastN {
         default       => 1,
     );
 
-    has 'out_fmt' => (
+    has 'outfmt' => (
         is            => 'rw',
         isa           => 'Int',
-        default       => 3,
+        traits        => ['CmdOpt'],
+        cmdopt_prefix => '-',
+        default       => 4,
         required      => 1,
         documentation => 'Output format [3,4 or 7]',
     );
@@ -87,6 +98,14 @@ class Bio::Moose::Run::IgBlastN {
     method _build_cmd_line {
         my @args = $self->cmd_args;
         my $arg_line = join " ", @args;
-        return 'command: "' . $self->bin_name . ' ' . $arg_line . '"';
+        return 'command: "'.$ENV{IGDATA} . $self->bin_name . ' ' . $arg_line . '"';
     }
+
+    method out_as_string {
+        $self->run();
+        my $str;
+        $str .= $_ foreach @{$self->stdout};
+        return $str;
+    }
+
 }

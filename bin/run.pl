@@ -25,6 +25,7 @@ class MyApp::igblastn {
     use MooseX::App::Command;    # important
     use MooseX::FileAttribute;
     use Bio::Moose::Run::IgBlastN;
+    use Data::Printer;
 
     command_short_description q[This command is awesome];
     command_long_description q[This command is so awesome, yadda yadda yadda];
@@ -35,7 +36,16 @@ class MyApp::igblastn {
         cmd_aliases   => [qw(i)],
         must_exist    => 1,
         required      => 1,
-        documentation => q[Very important option!],
+        documentation => q[Input FASTA file!],
+    );
+
+    has_file 'output_file' => (
+        traits        => ['AppOption'],
+        cmd_type      => 'option',
+        cmd_aliases   => [qw(o)],
+        must_exist    => 0,
+        required      => 1,
+        documentation => q[Output igblast file!],
     );
 
     method run {        
@@ -43,8 +53,20 @@ class MyApp::igblastn {
         $cmd = $1 if __PACKAGE__ =~ /\:\:(.*)$/;        
         $self->log->warn("==> Starting $cmd <==");
 
-        my $c = Bio::Moose::Run::IgBlastN->new( query => $self->input_file );
-        say $c->_build_cmd_line;
+        my $db_path = '/work/bioinformatics/igblast';
+        my $c = Bio::Moose::Run::IgBlastN->new(
+            query          => $self->input_file,
+            germline_db_V  => "$db_path/database/human_gl_V",
+            germline_db_D  => "$db_path/database/human_gl_D",
+            germline_db_J  => "$db_path/database/human_gl_J",
+            auxiliary_data => "$db_path/optional_file/human_gl.aux",
+        );
+        
+        open( my $out, '>', $self->output_file )
+            || die "Cannot open/write file " . $self->output_file . "!";
+        say $out  $c->out_as_string();
+        close( $out );
+        
 
         $self->log->warn("==> END $cmd <==");
     }

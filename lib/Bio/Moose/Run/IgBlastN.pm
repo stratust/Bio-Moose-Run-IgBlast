@@ -4,12 +4,13 @@ use Method::Signatures::Modifiers;
 
 class Bio::Moose::Run::IgBlastN {
     with 'MooseX::Role::Cmd';
+    use Path::Class::File;
 
     sub build_bin_name { 'igblastn' }
 
     has 'query' => (
         is            => 'rw',
-        isa           => 'Str|Path::Class::File',
+        isa           => 'Str|Object',
         required      => 1,
         traits        => ['CmdOpt'],
         cmdopt_prefix => '-',
